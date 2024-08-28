@@ -1,0 +1,207 @@
+public MainWindow()
+{
+    InitializeComponent();
+}
+
+QLBHContext db = new QLBHContext();
+
+private List<TT> LayDL()
+{
+    var query = from t in db.HoaDons
+                where t.DonGia >= 0
+                orderby t.DonGia ascending
+                select new TT
+                {
+                    SoHD = t.SoHd,
+                    TenSP = t.TenSp,
+                    SoLuong = t.SoLuong,
+                    DonGia = t.DonGia,
+                    ThanhTien = t.SoLuong * t.DonGia,
+                    MaNV = t.MaNv
+                };
+    return query.ToList<TT>();
+}
+
+private void HienThiDL()
+{
+    dgSanPham.ItemsSource = LayDL();
+}
+
+private void HienThiCB()
+{
+    var query = from t in db.NhanViens
+                select t;
+    cbNhanVien.ItemsSource = query.ToList();
+    cbNhanVien.DisplayMemberPath = "TenNv";
+    cbNhanVien.SelectedValuePath = "MaNv";
+    cbNhanVien.SelectedIndex = 0;
+}
+
+private void dgSanPham_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+{
+    if(dgSanPham.SelectedItem != null)
+    {
+        try
+        {
+            Type t = dgSanPham.SelectedItem.GetType();
+            PropertyInfo[] p = t.GetProperties();
+            txtSoHD.Text = p[0].GetValue(dgSanPham.SelectedValue).ToString();
+            txtTenSP.Text = p[1].GetValue(dgSanPham.SelectedValue).ToString();
+            txtSoLuong.Text = p[2].GetValue(dgSanPham.SelectedValue).ToString();
+            txtDonGia.Text = p[3].GetValue(dgSanPham.SelectedValue).ToString();
+            cbNhanVien.SelectedValue = p[5].GetValue(dgSanPham.SelectedValue).ToString();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Lỗi khi chọn!" + ex);
+        }
+    }
+}
+
+private bool CheckDL()
+{
+    string mess = "";
+    if (txtSoHD.Text == "" || txtTenSP.Text == "" || txtSoLuong.Text == "" || txtDonGia.Text == "")
+    {
+        mess += "\nNhap thieu du lieu";
+    }
+    if (!Regex.IsMatch(txtSoHD.Text, @"\d+"))
+    {
+        mess += "\nSo hoa don phai la so nguyen";
+    }
+    else
+    {
+        int sl = int.Parse(txtSoHD.Text);
+        if (sl < 0)
+        {
+            mess += "\nSo hoa don phai la so duong";
+        }
+    }
+    if (!Regex.IsMatch(txtSoLuong.Text, @"\d+"))
+    {
+        mess += "\nSo luong phai la so nguyen";
+    }
+    else
+    {
+        int sl = int.Parse(txtSoLuong.Text);
+        if (sl < 0)
+        {
+            mess += "\nSo luong phai la so duong";
+        }
+    }
+    double doubleValue;
+    if (!double.TryParse(txtDonGia.Text, out doubleValue))
+    {
+        mess += "\nDon gia phai la so thuc";
+    }
+    else
+    {
+        double donGia = double.Parse(txtDonGia.Text);
+        if (donGia < 0)
+        {
+            mess += "\nDon gia phai la so duong";
+        }
+    }
+    if (mess != "")
+    {
+        MessageBox.Show(mess, "Thong bao", MessageBoxButton.OK, MessageBoxImage.Error);
+        return false;
+    }
+    return true;
+}
+
+
+private void Window_Loaded(object sender, RoutedEventArgs e)
+{
+    HienThiDL();
+    HienThiCB();
+}
+
+private void btnThem_Click(object sender, RoutedEventArgs e)
+{
+    try
+    {
+        if (CheckDL())
+        {
+            var query = db.HoaDons.SingleOrDefault(t => t.SoHd.Equals(int.Parse(txtSoHD.Text)));
+            if (query != null)
+            {
+                MessageBox.Show("Da ton tai", "Thong bao", MessageBoxButton.OK);
+                HienThiDL();
+            }
+            else
+            {
+                HoaDon a = new HoaDon();
+                a.SoHd = int.Parse(txtSoHD.Text);
+                a.TenSp = txtTenSP.Text;
+                a.SoLuong = int.Parse(txtSoLuong.Text);
+                a.DonGia = double.Parse(txtDonGia.Text);
+                NhanVien b = (NhanVien)cbNhanVien.SelectedItem;
+                a.MaNv = b.MaNv;
+                db.HoaDons.Add(a);
+                db.SaveChanges();
+                MessageBox.Show("Them thanh cong", "Thong bao", MessageBoxButton.OK);
+                HienThiDL();
+            }
+        }
+    }
+    catch (Exception e1)
+    {
+        MessageBox.Show("Co loi khi them " + e1.Message, "Thong bao", MessageBoxButton.OK, MessageBoxImage.Error);
+    }
+}
+
+private void btnSua_Click(object sender, RoutedEventArgs e)
+{
+    try
+    {
+        var query = db.HoaDons.SingleOrDefault(t => t.SoHd.Equals(int.Parse(txtSoHD.Text)));
+        if (query != null)
+        {
+            query.TenSp = txtTenSP.Text;
+            query.SoLuong = int.Parse(txtSoLuong.Text);
+            query.DonGia = double.Parse(txtDonGia.Text);
+            query.MaNv = ((NhanVien)cbNhanVien.SelectedItem).MaNv;
+            db.SaveChanges();
+            HienThiDL();
+
+        }
+        else
+        {
+            MessageBox.Show("Khong thay san pham can sua");
+        }
+    }
+    catch (Exception e1)
+    {
+        MessageBox.Show("Co loi: " + e1);
+    }
+}
+
+private void btnTim_Click(object sender, RoutedEventArgs e)
+{
+    Window1 f = new Window1();
+    f.ShowDialog();
+}
+
+private void btnXoa_Click(object sender, RoutedEventArgs e)
+{
+    try
+    {
+        var query = db.HoaDons.SingleOrDefault(t => t.SoHd.Equals(int.Parse(txtSoHD.Text)));
+        if (query != null)
+        {
+            db.HoaDons.Remove(query);
+            db.SaveChanges();
+            HienThiDL();
+        }
+        else
+        {
+            MessageBox.Show("Chua ton tai san pham can xoa", "Thong bao");
+            HienThiDL();
+        }
+    }
+    catch (Exception e1)
+    {
+        MessageBox.Show("Co loi khi xoa: " + e1, "Thong bao");
+    }
+}
