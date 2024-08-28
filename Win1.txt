@@ -1,0 +1,98 @@
+<Window.Resources>
+    <Style TargetType="TextBox">
+        <Setter Property="Background" Value="White"/>
+        <Style.Triggers>
+            <Trigger Property="IsFocused" Value="True">
+                <Setter Property="Background" Value="SkyBlue"></Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    <Style TargetType="Button">
+        <Setter Property="Background" Value="Cyan"></Setter>
+        <Setter Property="Height" Value="25px"></Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border CornerRadius="40"
+                    Background="{TemplateBinding Background}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</Window.Resources>
+
+<Grid Margin="0,0,0,-6">
+    <Label Content="Số hóa đơn" HorizontalAlignment="Left" Margin="92,17,0,0" VerticalAlignment="Top" Height="40" Width="131"/>
+    <Label Content="Tên sản phẩm" HorizontalAlignment="Left" Margin="92,62,0,0" VerticalAlignment="Top" Height="40" Width="131"/>
+    <Label Content="Số lượng" HorizontalAlignment="Left" Margin="92,107,0,0" VerticalAlignment="Top" Height="40" Width="131"/>
+    <Label Content="Đơn giá" HorizontalAlignment="Left" Margin="92,152,0,0" VerticalAlignment="Top" Height="40" Width="131"/>
+    <Label Content="Tên nhân viên" HorizontalAlignment="Left" Margin="92,197,0,0" VerticalAlignment="Top" Height="40" Width="131"/>
+    <TextBox Name="txtSoHD" HorizontalAlignment="Left" Margin="239,17,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="196" Height="29"/>
+    <TextBox Name="txtTenSP" HorizontalAlignment="Left" Margin="239,62,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="196" Height="29"/>
+    <TextBox Name="txtSoLuong"  HorizontalAlignment="Left" Margin="239,107,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="196" Height="29"/>
+    <TextBox Name="txtDonGia" HorizontalAlignment="Left" Margin="239,152,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="196" Height="29"/>
+    <ComboBox Name="cbNhanVien" HorizontalAlignment="Left" Margin="239,201,0,0" VerticalAlignment="Top" Width="196"/>
+    <DataGrid Name="dgSanPham" AutoGenerateColumns="False" SelectedCellsChanged="dgSanPham_SelectedCellsChanged" Margin="85,242,85,65">
+        <DataGrid.Columns>
+            <DataGridTextColumn Header="Số hóa đơn" Binding="{Binding SoHD, Mode=OneWay}"></DataGridTextColumn>
+            <DataGridTextColumn Header="Tên sản phẩm" Binding="{Binding TenSP, Mode=OneWay}"></DataGridTextColumn>
+            <DataGridTextColumn Header="Số lượng" Binding="{Binding SoLuong, Mode=OneWay}"></DataGridTextColumn>
+            <DataGridTextColumn Header="Đơn giá" Binding="{Binding DonGia, Mode=OneWay}"></DataGridTextColumn>
+            <DataGridTextColumn Header="Thành tiền" Binding="{Binding ThanhTien, Mode=OneWay}"></DataGridTextColumn>
+            <DataGridTextColumn Header="Mã nhân viên" Binding="{Binding MaNV, Mode=OneWay}"></DataGridTextColumn>
+        </DataGrid.Columns>
+        <DataGrid.Resources>
+            <Style TargetType="DataGridColumnHeader">
+                <Setter Property="FontWeight" Value="Bold"></Setter>
+            </Style>
+        </DataGrid.Resources>
+    </DataGrid>
+    <Button Content="Thêm" Name="btnThem" HorizontalAlignment="Left" Margin="151,419,0,0" VerticalAlignment="Top" Width="65" Click="btnThem_Click"/>
+    <Button Content="Sửa" Name="btnSua" HorizontalAlignment="Left" Margin="299,419,0,0" VerticalAlignment="Top" Width="65" Click="btnSua_Click"/>
+    <Button Content="Tìm" Name="btnTim" HorizontalAlignment="Left" Margin="443,419,0,0" VerticalAlignment="Top" Width="65" Click="btnTim_Click"/>
+    <Button Content="Xóa" Name="btnXoa" HorizontalAlignment="Left" Margin="582,419,0,0" VerticalAlignment="Top" Width="65" Click="btnXoa_Click"/>
+</Grid>
+
+
+
+
+
+
+class TT
+{
+    public int SoHD { get; set; }
+    public string? TenSP { get; set;}
+    public int? SoLuong { get; set;}
+    public double? DonGia { get; set;}
+    public double? ThanhTien { get; set;}
+    public int? MaNV { get;set;}
+
+}
+
+
+
+
+
+
+public Window1()
+{
+    InitializeComponent();
+}
+
+private void Window_Loaded(object sender, RoutedEventArgs e)
+{
+    QLBHContext db = new QLBHContext();
+    var query = from t in db.HoaDons
+                where t.MaNv == 1
+                select new
+                {
+                    SoHD = t.SoHd,
+                    TenSP = t.TenSp,
+                    SoLuong = t.SoLuong,
+                    DonGia = t.DonGia,
+                    ThanhTien = t.SoLuong * t.DonGia,
+                };
+    dgNV.ItemsSource = query.ToList();
+}
